@@ -1,7 +1,5 @@
 # DAVID AMCS Project: Performance Improvement
 
-AMCS Main: Program for rendering 3D Models directly on web browser
-
 
 GPU JS: Demo for GPU Acceleration using "gpu.js" library
 
