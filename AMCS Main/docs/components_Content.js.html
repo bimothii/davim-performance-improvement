@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/Content.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/Content.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
+import React, { useEffect, useState } from 'react';
+import ScatterPlot from './ScatterPlot';
+import ScatterPlot_overview from './ScatterPlot_overview';
+import { calculateAverage,findMinMax } from './dataProcessing/dataProcess';
+import CheckBox from './CheckBox';
+import { debounce } from 'lodash';
+
+/**
+ * `Content` component calculates some essential parameters (scale, size, avgLine, extremeValues) and passes them to its child component to render the scatter plot.
+ * 
+ * @component
+ * @param {Object} contentRef - Reference to the content DOM element, mainly monitor the size of the content DOM element to perform re-rendering actions.
+ * @param {Array} inputData - Array of data entries to visualize. Each entry should be in format [index, regular data array , derivative data array, checkbox status ].
+ * @param {boolean} showDerivative - Flag to indicate if derivative data should be showed.
+ * @param {boolean} showGradient - Flag to indicate if gradient mode should be showed.
+ * @param {Function} setInputData - Callback to update inputData, We pass this function to the child component because the child component needs to use this function to update inputdata if the state of the checkbox changes.
+ * @param {Array} queryStreamlineIndex - Query streamline index data.
+ * @param {Array} segments - Array of segments data.
+ * @param {Function} setSegmentsSelected - Callback to update selected segments.
+ */
+
+
+function Content(props) {
+  const [size, setSize] = useState(0);
+  const [renderedChart, setRenderedChart] = useState(null);
+  const { contentRef } = props;
+  const inputData = props.inputData;
+  // const [inputData, setInputData] = useState(JSON.parse(JSON.stringify(props.inputData)))
+  //The expected inputData should be an array composed of [index, regular data array , derivative data array, _ ].
+  // useEffect(()=>{
+  //   if(props.inputData)
+  //   setInputData(JSON.parse(JSON.stringify(props.inputData)));
+  // },[props.inputData])
+
+  const showDerivative = props.showDerivative
+  const showGradient = props.showGradient
+  const xscale = "x";
+  const yscale = "y";
+
+  const handleCheckBoxChange = (id, checked) => {
+    console.log(`Checkbox ${id} was clicked. Checked: ${checked}`)
+    let inputDataCopy = JSON.parse(JSON.stringify(inputData)); // deep copy
+    let item = inputDataCopy.find((dataItem) => dataItem[0] === id);
+    if (item) {
+      item[3] = checked;
+    }
+    props.setInputData(inputDataCopy);
+  };
+
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver(
+      debounce(entries => {
+        const contentRect = entries[0].contentRect;
+        setSize({ width: contentRect.width, height: contentRect.height });
+      }, 100)
+    );
+   
+    console.log("useeffect is called");
+    resizeObserver.observe(contentRef.current);
+
+    let extremeValues;
+    if (!showDerivative) {   //If the user didn't checked the checkbox (render regualr data)
+      extremeValues = findMinMax(inputData,false)  //Calculate the scale (the second parameter determines whether to use derivative data as input or not).
+      setRenderedChart(
+        &lt;>
+          &lt;ScatterPlot_overview inputData={calculateAverage(inputData,false)} xscale={xscale} yscale={yscale} size={size} extremeValues={extremeValues} showGradient={showGradient} queryStreamlineIndex={props.queryStreamlineIndex} segments={props.segments} setSegmentsSelected={props.setSegmentsSelected}>&lt;/ScatterPlot_overview>
+          &lt;div className='scrollable-div'>
+          {inputData.map((dataItem, index) => (
+          &lt;div className="chart-container" key={dataItem[0]}>
+            &lt;ScatterPlot inputData={dataItem[1]} xscale={xscale} yscale={yscale} size={{...size, width: size.width - 30}} extremeValues={extremeValues}/>
+            &lt;CheckBox id={dataItem[0]} initialChecked={dataItem[3]} onCheck={handleCheckBoxChange} />
+          &lt;/div>
+          ))}
+          &lt;/div>
+          
+        &lt;/>
+      );
+    }else{ //If the user checked the checkbox (render derivative data)
+      extremeValues = findMinMax(inputData,true)  //Calculate the scale (the second parameter determines whether to use derivative data as input or not).
+      setRenderedChart(
+        &lt;>
+          &lt;ScatterPlot_overview inputData={calculateAverage(inputData,true)} xscale={xscale} yscale={yscale} size={size} extremeValues={extremeValues} showGradient={showGradient} queryStreamlineIndex={props.queryStreamlineIndex} segments={props.segments} setSegmentsSelected={props.setSegmentsSelected}>&lt;/ScatterPlot_overview>
+          &lt;div className='scrollable-div'>
+          {inputData.map((dataItem, index) => (
+          &lt;div className="chart-container" key={dataItem[0]}>
+            &lt;ScatterPlot inputData={dataItem[2]} xscale={xscale} yscale={yscale} size={{...size, width: size.width - 30}} extremeValues={extremeValues}/>
+            &lt;CheckBox id={dataItem[0]} initialChecked={dataItem[3]} onCheck={handleCheckBoxChange} />
+          &lt;/div>
+          ))}
+          &lt;/div>
+        &lt;/>
+      );
+    }
+  
+    return () => resizeObserver.disconnect();
+  }, [size.width, size.height, inputData, xscale, yscale, showDerivative,showGradient]);
+  
+
+
+  return (
+    &lt;>
+      {size.width !== 0 &amp;&amp; size.height !== 0 ? renderedChart : null}
+      {/* &lt;ScatterPlot inputData={inputData} xscale={xscale} yscale={yscale} /> */}
+    &lt;/>
+  );
+}
+
+export default Content;
+
+
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="CheckBox.html">CheckBox</a></li><li><a href="Content.html">Content</a></li><li><a href="ScatterPlot.html">ScatterPlot</a></li><li><a href="ScatterPlot_overview.html">ScatterPlot_overview</a></li><li><a href="Vis.html">Vis</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Mon Aug 14 2023 04:58:53 GMT-0500 (Central Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
