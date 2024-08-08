@@ -1,11 +1,10 @@
 import React from "react";
-import MyComponent from "./components/MyComponent";
+import WorkerManager from "./pages/WorkerManager";
 
 const App = () => {
   return (
     <div className="App">
-      <h1>React App with Web Worker</h1>
-      <MyComponent />
+      <WorkerManager />
     </div>
   );
 };
