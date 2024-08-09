@@ -1,5 +1,6 @@
 import { useState, React } from "react";
 import { GPU } from "gpu.js";
+const createKDTree = require("static-kdtree");
 const gpu = new GPU();
 
 function Tester() {
@@ -57,22 +58,14 @@ function Tester() {
     return points;
   };
 
-  const cpuDistance = (points, s) => {
-    const distances = [];
+  const cpuKNN = (points, s) => {
+    const tree = createKDTree(points);
     for (let i = 0; i < s; i++) {
-      distances.push([]);
-      for (let j = 0; j < s; j++) {
-        distances[i].push({
-          index: j,
-          distance:
-            Math.sqrt(Math.pow(points[i][0] - points[j][0]), 2) +
-            Math.pow(points[i][1] - points[j][1], 2),
-        });
-      }
+      tree.knn(points[i], K);
     }
   };
 
-  const gpuDistance = (points, s) => {
+  const gpuKNN = (points, s) => {
     const kernel = gpu
       .createKernel(function (points) {
         const i = this.thread.x;
@@ -84,6 +77,15 @@ function Tester() {
       })
       .setOutput([s, s]);
     const distances = kernel(points);
+    for (let i = 0; i < distances.length; i++) {
+      const kNearest = distances[i]
+        .sort((a, b) => {
+          if (a.distance === b.distance) return a.index - b.index;
+          else return a.distance - b.distance;
+        })
+        .slice(0, K)
+        .map((d) => d.index);
+    }
   };
 
   const simulateProgram = (type) => {
@@ -95,11 +97,11 @@ function Tester() {
       case "cpuMatrix":
         fun = cpuMatrix;
         break;
-      case "cpuDistance":
-        fun = cpuDistance;
+      case "cpuKNN":
+        fun = cpuKNN;
         break;
-      case "gpuDistance":
-        fun = gpuDistance;
+      case "gpuKNN":
+        fun = gpuKNN;
         break;
       default:
         break;
@@ -113,8 +115,8 @@ function Tester() {
         case "cpuMatrix":
           data = generateMatrices(s);
           break;
-        case "cpuDistance":
-        case "gpuDistance":
+        case "cpuKNN":
+        case "gpuKNN":
           data = generatePoints(s);
           break;
         default:
@@ -162,8 +164,10 @@ function Tester() {
       <button onClick={() => simulateProgram("gpuMatrix")}>Run GPU</button>
       <button onClick={() => simulateProgram("cpuMatrix")}>Run CPU</button>
       <p>K Nearest</p>
-      <button onClick={() => simulateProgram("gpuDistance")}>Run GPU</button>
-      <button onClick={() => simulateProgram("cpuDistance")}>Run CPU</button>
+      <button onClick={() => simulateProgram("gpuKNN")}>Run GPU</button>
+      <button onClick={() => simulateProgram("cpuKNN")}>
+        Run CPU with KD Tree
+      </button>
     </div>
   );
 }

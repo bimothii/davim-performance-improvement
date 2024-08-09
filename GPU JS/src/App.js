@@ -1,4 +1,3 @@
-import "./App.css";
 import Tester from "./Tester";
 
 function App() {

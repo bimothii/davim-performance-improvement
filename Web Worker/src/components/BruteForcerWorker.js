@@ -4,8 +4,6 @@ onmessage = (message) => {
   const end = message.data.end;
   const k = message.data.k;
 
-  const res = [];
-
   for (let i = start; i < end; i++) {
     const distances = [];
     for (let j = 0; j < points.length; j++) {
@@ -21,13 +19,11 @@ onmessage = (message) => {
       if (a.distance === b.distance) return a.index - b.index;
       return a.distance - b.distance;
     });
-    res.push({
+    postMessage({
       index: i,
       neighbors: distances.slice(1, k + 1).map((d) => {
         return d.index;
       }),
     });
   }
-
-  postMessage(res);
 };
