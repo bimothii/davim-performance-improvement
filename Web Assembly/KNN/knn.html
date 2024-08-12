@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>KNN</title>
+    <script src="knn.js"></script>
+  </head>
+  <body>
+    <p>Hello, Web Assembly!</p>
+
+    <script>
+      /*
+      let memory = new WebAssembly.Memory({
+        initial: 256,
+        maximum: 512,
+      });
+      let exports;
+
+      WebAssembly.instantiateStreaming(fetch("knn.wasm"), {
+        js: {
+          mem: memory,
+        },
+        env: {
+          emscripten_resize_heap: function (delta) {
+            memory.grow(delta);
+          },
+        },
+      }).then((results) => {
+        exports = results.instance.exports;
+        memory = results.instance.exports.memory;
+      });*/
+
+      const createTree = () => {
+        const num = Number(document.querySelector("#ret").value);
+        const points = new Float32Array(num * 3);
+        for (let i = 0; i < num * 3; i++) points[i] = i;
+
+        const tick = performance.now();
+        const arrayByteSize = points.length * Float32Array.BYTES_PER_ELEMENT;
+        const ptr = Module._malloc(arrayByteSize);
+        Module.HEAPF32.set(points, ptr / Float32Array.BYTES_PER_ELEMENT);
+        Module._createTree(ptr, points.length);
+        Module._free(ptr);
+        const tock = performance.now();
+
+        console.log((tock - tick).toFixed(2));
+      };
+
+      const knn = () => {
+        const num = Number(document.querySelector("#ret").value);
+        const points = new Float32Array(num * 3);
+        for (let i = 0; i < num * 3; i++) points[i] = i;
+
+        const tick = performance.now();
+        const arrayByteSize = points.length * Float32Array.BYTES_PER_ELEMENT;
+        const ptr = Module._malloc(arrayByteSize);
+        Module.HEAPF32.set(points, ptr / Float32Array.BYTES_PER_ELEMENT);
+        Module._knn(ptr, points.length, 5);
+        Module._free(ptr);
+        const tock = performance.now();
+
+        console.log(
+          `${(tock - tick).toFixed(2)} ms (${((tock - tick) / num).toFixed(
+            2
+          )} ms per point)`
+        );
+      };
+    </script>
+
+    <button onclick="createTree()">Add Point</button>
+    <button onclick="knn()">KNN</button>
+    <input type="number" id="ret" />
+    <p id="ret"></p>
+  </body>
+</html>

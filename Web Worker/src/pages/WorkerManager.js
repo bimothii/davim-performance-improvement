@@ -84,9 +84,7 @@ const WorkerManager = () => {
   };
 
   const kdTreeWithWorkers = () => {
-    const points = Array.from({ length: numPoints }, () =>
-      Array.from({ length: 2 }, () => Math.random() * 1000)
-    );
+    const points = createPoints(numPoints);
     const kNearest = [];
     const tick = performance.now();
     const tree = KDTree.buildTree(points, 0);
@@ -114,6 +112,12 @@ const WorkerManager = () => {
         }
       };
     }
+  };
+
+  const createPoints = (n) => {
+    return Array.from({ length: n }, () =>
+      Array.from({ length: 2 }, () => Math.random() * 1000)
+    );
   };
 
   return (

@@ -68,6 +68,7 @@ function Tester() {
   const gpuKNN = (points, s) => {
     const kernel = gpu
       .createKernel(function (points) {
+        const arr = new Float32Array(10);
         const i = this.thread.x;
         const j = this.thread.y;
         return Math.sqrt(

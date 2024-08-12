@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>KNN</title>
+    <script src="knn.js"></script>
+  </head>
+  <body>
+    <p>Hello, Web Assembly!</p>
+
+    <script>
+      var memory = new WebAssembly.Memory({
+        initial: 256,
+        maximum: 512,
+      });
+
+      var exports;
+      WebAssembly.instantiateStreaming(fetch("knn.wasm"), {
+        js: {
+          mem: memory,
+        },
+        env: {
+          emscripten_resize_heap: function (delta) {
+            memory.grow(delta);
+          },
+        },
+      }).then((results) => {
+        exports = results.instance.exports;
+        memory = results.instance.exports.memory;
+      });
+
+      const knn = () => {
+        const num = Number(document.querySelector("#ret").value);
+        const trainingPoints = Array.from({ length: num * 3 }, () => {
+          Math.random() * 1000;
+        });
+        const testPoints = Array.from({ length: num * 3 }, () => {
+          Math.random() * 1000;
+        });
+        for (let i = 0; i < num * 3; i++) testPoints[i] = Math.random() * 1000;
+        const trainingPtr = encodeArray(trainingPoints, num * 3, 4);
+        const testPtr = encodeArray(trainingPoints, num * 3, 4);
+        exports._knn(trainingPtr, testPtr, num * 3, num * 3, 5);
+        const tick = performance.now();
+        const tock = performance.now();
+
+        console.log((tock - tick).toFixed(2));
+      };
+
+      const encodeArray = (arr, len, sizeof = 1) => {
+        let ptr;
+        let out;
+        if (sizeof == 8) {
+          ptr = exports._malloc(len * 8);
+          out = new BigUint64Array(memory.buffer, ptr);
+        } else if (sizeof == 4) {
+          ptr = exports._malloc(len * 4);
+          out = new Uint32Array(memory.buffer, ptr);
+        } else {
+          ptr = exports._malloc(len);
+          out = new Uint8Array(memory.buffer, ptr);
+        }
+
+        for (let i = 0; i < len; i++) out[i] = arr[i];
+
+        return ptr;
+      };
+    </script>
+
+    <button onclick="knn()">KNN</button>
+    <input type="number" id="ret" />
+    <p id="ret"></p>
+  </body>
+</html>

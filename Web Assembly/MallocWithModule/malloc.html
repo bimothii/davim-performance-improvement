@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Streaming</title>
+    <script src="malloc.js"></script>
+  </head>
+  <body>
+    <p>Hello, Web Assembly!</p>
+
+    <script>
+      Module.onRuntimeInitialized = function () {
+        // Example array
+        const jsArray = [10, 20, 30, 40, 50];
+        const arraySize = jsArray.length;
+        const arrayByteSize = arraySize * Uint8Array.BYTES_PER_ELEMENT;
+        const ptr = Module._malloc(arrayByteSize);
+
+        Module.HEAPU8.set(jsArray, ptr);
+
+        Module._processArray(ptr, arraySize);
+
+        const resultArray = new Uint8Array(
+          Module.HEAPU8.buffer,
+          ptr,
+          arraySize
+        );
+        console.log(resultArray);
+
+        Module._free(ptr);
+      };
+    </script>
+
+    <input type="number" id="a" />
+    <button onclick="run_wasm()">Trigger</button>
+    <button onclick="get_string()">Copy string</button>
+    <p id="ret"></p>
+  </body>
+</html>
