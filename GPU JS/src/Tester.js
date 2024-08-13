@@ -68,7 +68,6 @@ function Tester() {
   const gpuKNN = (points, s) => {
     const kernel = gpu
       .createKernel(function (points) {
-        const arr = new Float32Array(10);
         const i = this.thread.x;
         const j = this.thread.y;
         return Math.sqrt(
@@ -87,6 +86,43 @@ function Tester() {
         .slice(0, K)
         .map((d) => d.index);
     }
+  };
+
+  const gpuDistances = (points, s) => {
+    const streamlines = [];
+    for (let i = 0; i < Math.floor(s / 2); i++) {
+      const newStream = [Math.floor(Math.random() * (s / 2))];
+      newStream.push(newStream[0] + Math.floor(Math.random() * (s / 2)));
+      streamlines.push(newStream);
+    }
+
+    const kernel = gpu
+      .createKernel(function (points, streamlines) {
+        let totalDistance = 0.0;
+        let count = 0.0;
+        const x = this.thread.x;
+        const y = this.thread.y;
+
+        for (let i = streamlines[x][0]; i < streamlines[x][1]; i++) {
+          for (let j = streamlines[y][0]; j < streamlines[y][1]; j++) {
+            totalDistance += Math.sqrt(
+              Math.pow(points[i][0] - points[j][0], 2.0) +
+                Math.pow(points[i][1] - points[j][1], 2.0)
+            );
+            count++;
+          }
+        }
+
+        if (count == 0.0) {
+          return 0;
+        }
+        const ans = totalDistance / count;
+        return ans;
+      })
+      .setOutput([streamlines.length, streamlines.length])
+      .setPrecision("single");
+
+    console.log(kernel(points, streamlines));
   };
 
   const simulateProgram = (type) => {
@@ -167,6 +203,18 @@ function Tester() {
       <p>K Nearest</p>
       <button onClick={() => simulateProgram("gpuKNN")}>Run GPU</button>
       <button onClick={() => simulateProgram("cpuKNN")}>
+        Run CPU with KD Tree
+      </button>
+      <button
+        onClick={() =>
+          gpuDistances(
+            Array.from({ length: startSize }, () =>
+              Array.from({ length: 2 }, () => Math.random() * 1000)
+            ),
+            startSize
+          )
+        }
+      >
         Run CPU with KD Tree
       </button>
     </div>
