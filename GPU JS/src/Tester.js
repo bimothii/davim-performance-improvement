@@ -4,219 +4,65 @@ const createKDTree = require("static-kdtree");
 const gpu = new GPU();
 
 function Tester() {
-  const [startSize, setStartSize] = useState(20);
-  const [endSize, setEndSize] = useState(500);
-  const [sizeStep, setSizeStep] = useState(20);
-  const [trials, setTrials] = useState(20);
+  const [numPoints, setNumPoints] = useState(100000);
+  const [numQueries, setNumQueries] = useState(100000);
+  const [trials, setTrials] = useState(1);
+  const [dimensions, setDimensions] = useState(3);
   const [K, setK] = useState(10);
-  const generateMatrices = (s) => {
-    const matrices = [[], []];
-    for (let y = 0; y < s; y++) {
-      matrices[0].push([]);
-      matrices[1].push([]);
-      for (let x = 0; x < s; x++) {
-        matrices[0][y].push(Math.random());
-        matrices[1][y].push(Math.random());
-      }
-    }
-    return matrices;
-  };
-
-  const gpuMatrix = (matrices, s) => {
-    const kernel = gpu
-      .createKernel(function (a, b) {
-        let sum = 0;
-        for (let i = 0; i < this.constants.size; i++) {
-          sum += a[this.thread.y][i] * b[i][this.thread.x];
-        }
-        return sum;
-      })
-      .setConstants({ size: s })
-      .setOutput([s, s]);
-    const newMatrix = kernel(matrices[0], matrices[1]);
-  };
-
-  const cpuMatrix = (matrices, s) => {
-    const newMatrix = [];
-    for (let r = 0; r < s; r++) {
-      newMatrix.push([]);
-      for (let c = 0; c < s; c++) {
-        let sum = 0;
-        for (let i = 0; i < s; i++) {
-          sum += matrices[0][r][i] * matrices[1][i][c];
-        }
-        newMatrix[r].push(sum);
-      }
-    }
-  };
 
   const generatePoints = (s) => {
     const points = [];
     for (let i = 0; i < s; i++) {
-      points.push([Math.random() * 1000, Math.random() * 1000]);
+      const point = [];
+      for (let j = 0; j < dimensions; j++) point.push(Math.random() * 1000);
+      points.push(point);
     }
     return points;
   };
 
-  const cpuKNN = (points, s) => {
+  const cpuKNN = () => {
+    let start = performance.now();
+    const points = generatePoints(numPoints);
+    const queries = generatePoints(numQueries);
+    let end = performance.now();
+    console.log("Points Generation Time: ", (end - start).toFixed(2), "ms");
+    start = performance.now();
     const tree = createKDTree(points);
-    for (let i = 0; i < s; i++) {
-      tree.knn(points[i], K);
+    end = performance.now();
+    console.log("KD Tree Generation Time: ", (end - start).toFixed(2), "ms");
+
+    start = performance.now();
+    for (let i = 0; i < queries; i++) {
+      tree.knn(queries[i], K);
     }
-  };
-
-  const gpuKNN = (points, s) => {
-    const kernel = gpu
-      .createKernel(function (points) {
-        const i = this.thread.x;
-        const j = this.thread.y;
-        return Math.sqrt(
-          Math.pow(points[i][0] - points[j][0], 2) +
-            Math.pow(points[i][1] - points[j][1], 2)
-        );
-      })
-      .setOutput([s, s]);
-    const distances = kernel(points);
-    for (let i = 0; i < distances.length; i++) {
-      const kNearest = distances[i]
-        .sort((a, b) => {
-          if (a.distance === b.distance) return a.index - b.index;
-          else return a.distance - b.distance;
-        })
-        .slice(0, K)
-        .map((d) => d.index);
-    }
-  };
-
-  const gpuDistances = (points, s) => {
-    const streamlines = [];
-    for (let i = 0; i < Math.floor(s / 2); i++) {
-      const newStream = [Math.floor(Math.random() * (s / 2))];
-      newStream.push(newStream[0] + Math.floor(Math.random() * (s / 2)));
-      streamlines.push(newStream);
-    }
-
-    const kernel = gpu
-      .createKernel(function (points, streamlines) {
-        let totalDistance = 0.0;
-        let count = 0.0;
-        const x = this.thread.x;
-        const y = this.thread.y;
-
-        for (let i = streamlines[x][0]; i < streamlines[x][1]; i++) {
-          for (let j = streamlines[y][0]; j < streamlines[y][1]; j++) {
-            totalDistance += Math.sqrt(
-              Math.pow(points[i][0] - points[j][0], 2.0) +
-                Math.pow(points[i][1] - points[j][1], 2.0)
-            );
-            count++;
-          }
-        }
-
-        if (count == 0.0) {
-          return 0;
-        }
-        const ans = totalDistance / count;
-        return ans;
-      })
-      .setOutput([streamlines.length, streamlines.length])
-      .setPrecision("single");
-
-    console.log(kernel(points, streamlines));
-  };
-
-  const simulateProgram = (type) => {
-    let fun = null;
-    switch (type) {
-      case "gpuMatrix":
-        fun = gpuMatrix;
-        break;
-      case "cpuMatrix":
-        fun = cpuMatrix;
-        break;
-      case "cpuKNN":
-        fun = cpuKNN;
-        break;
-      case "gpuKNN":
-        fun = gpuKNN;
-        break;
-      default:
-        break;
-    }
-
-    const times = [];
-    for (let s = startSize; s <= endSize; s += sizeStep) {
-      let data = null;
-      switch (type) {
-        case "gpuMatrix":
-        case "cpuMatrix":
-          data = generateMatrices(s);
-          break;
-        case "cpuKNN":
-        case "gpuKNN":
-          data = generatePoints(s);
-          break;
-        default:
-          break;
-      }
-      const start = performance.now();
-      for (let q = 0; q < trials; q++) fun(data, s);
-      const end = performance.now();
-      times.push(((end - start) / trials).toFixed(2));
-      console.log(s + " " + times[times.length - 1]);
-    }
-
-    let message = "";
-    for (let i = 0; i < times.length; i++) message += times[i] + "\n";
-    console.log(message);
+    end = performance.now();
+    console.log("CPU KNN Time: ", (end - start).toFixed(2), "ms");
+    console.log(((end - start) / numQueries).toFixed(6), "ms per query");
   };
 
   return (
     <div
       style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
     >
-      <p>Start Size</p>
+      <p>Num Points</p>
       <input
-        defaultValue={startSize}
-        onChange={(e) => setStartSize(Number(e.target.value))}
-      />
-      <p>End Size</p>
-      <input
-        defaultValue={endSize}
-        onChange={(e) => setEndSize(Number(e.target.value))}
-      />
-      <p>Size Step</p>
-      <input
-        defaultValue={sizeStep}
-        onChange={(e) => setSizeStep(Number(e.target.value))}
+        defaultValue={numPoints}
+        onChange={(e) => setNumPoints(Number(e.target.value))}
       />
       <p>Trials</p>
       <input
         defaultValue={trials}
         onChange={(e) => setTrials(Number(e.target.value))}
       />
+      <p>Num Queries</p>
+      <input
+        defaultValue={numQueries}
+        onChange={(e) => setNumQueries(Number(e.target.value))}
+      />
       <p>K</p>
       <input defaultValue={K} onChange={(e) => setK(Number(e.target.value))} />
-      <p>Multiplying Two Matrices</p>
-      <button onClick={() => simulateProgram("gpuMatrix")}>Run GPU</button>
-      <button onClick={() => simulateProgram("cpuMatrix")}>Run CPU</button>
       <p>K Nearest</p>
-      <button onClick={() => simulateProgram("gpuKNN")}>Run GPU</button>
-      <button onClick={() => simulateProgram("cpuKNN")}>
-        Run CPU with KD Tree
-      </button>
-      <button
-        onClick={() =>
-          gpuDistances(
-            Array.from({ length: startSize }, () =>
-              Array.from({ length: 2 }, () => Math.random() * 1000)
-            ),
-            startSize
-          )
-        }
-      >
-        Run CPU with KD Tree
-      </button>
+      <button onClick={() => cpuKNN()}>Run CPU with KD Tree</button>
     </div>
   );
 }

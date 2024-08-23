@@ -2,74 +2,76 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>KNN</title>
+    <title>Streaming</title>
     <script src="knn.js"></script>
   </head>
   <body>
     <p>Hello, Web Assembly!</p>
 
     <script>
-      /*
-      let memory = new WebAssembly.Memory({
-        initial: 256,
-        maximum: 512,
-      });
-      let exports;
+      const runQueriesSimultaneously = () => {
+        const numPoints = 100000;
+        const dimensions = 3;
+        const numQueries = 100000;
+        const k = 10;
 
-      WebAssembly.instantiateStreaming(fetch("knn.wasm"), {
-        js: {
-          mem: memory,
-        },
-        env: {
-          emscripten_resize_heap: function (delta) {
-            memory.grow(delta);
-          },
-        },
-      }).then((results) => {
-        exports = results.instance.exports;
-        memory = results.instance.exports.memory;
-      });*/
+        let start = performance.now();
+        const pointsPtr = Module._createFloatArray(numPoints * dimensions);
+        const queriesPtr = Module._createFloatArray(numQueries * dimensions);
+        console.log(
+          "Time to allocate memory: " + (performance.now() - start) + "ms"
+        );
+        const resPtr = Module._createIntArray(numQueries * k);
 
-      const createTree = () => {
-        const num = Number(document.querySelector("#ret").value);
-        const points = new Float32Array(num * 3);
-        for (let i = 0; i < num * 3; i++) points[i] = i;
+        start = performance.now();
+        const points = new Float32Array(
+          Module.HEAPF32.buffer,
+          pointsPtr,
+          numPoints * dimensions
+        );
 
-        const tick = performance.now();
-        const arrayByteSize = points.length * Float32Array.BYTES_PER_ELEMENT;
-        const ptr = Module._malloc(arrayByteSize);
-        Module.HEAPF32.set(points, ptr / Float32Array.BYTES_PER_ELEMENT);
-        Module._createTree(ptr, points.length);
-        Module._free(ptr);
-        const tock = performance.now();
+        const queries = new Float32Array(
+          Module.HEAPF32.buffer,
+          queriesPtr,
+          numQueries * dimensions
+        );
 
-        console.log((tock - tick).toFixed(2));
-      };
+        const res = new Int32Array(
+          Module.HEAP32.buffer,
+          resPtr,
+          numQueries * k
+        );
 
-      const knn = () => {
-        const num = Number(document.querySelector("#ret").value);
-        const points = new Float32Array(num * 3);
-        for (let i = 0; i < num * 3; i++) points[i] = i;
+        for (let i = 0; i < numPoints * dimensions; i++) {
+          points[i] = Math.random() * 1000;
+        }
 
-        const tick = performance.now();
-        const arrayByteSize = points.length * Float32Array.BYTES_PER_ELEMENT;
-        const ptr = Module._malloc(arrayByteSize);
-        Module.HEAPF32.set(points, ptr / Float32Array.BYTES_PER_ELEMENT);
-        Module._knn(ptr, points.length, 5);
-        Module._free(ptr);
-        const tock = performance.now();
+        for (let i = 0; i < numQueries * dimensions; i++) {
+          queries[i] = Math.random() * 1000;
+        }
 
         console.log(
-          `${(tock - tick).toFixed(2)} ms (${((tock - tick) / num).toFixed(
-            2
-          )} ms per point)`
+          "JS: Time to generate: " + (performance.now() - start) + "ms"
+        );
+
+        start = performance.now();
+        Module._run(
+          pointsPtr,
+          queriesPtr,
+          resPtr,
+          numPoints,
+          numQueries,
+          k,
+          dimensions
+        );
+        console.log(
+          "JS: Time to run queries: " + (performance.now() - start) + "ms"
         );
       };
     </script>
 
-    <button onclick="createTree()">Add Point</button>
-    <button onclick="knn()">KNN</button>
-    <input type="number" id="ret" />
+    <input type="number" id="a" />
+    <button onclick="runQueriesSimultaneously()">Trigger</button>
     <p id="ret"></p>
   </body>
 </html>

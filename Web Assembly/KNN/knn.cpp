@@ -1,53 +1,85 @@
-#include "kdtree.hpp"
 #include <emscripten.h>
 #include <bits/stdc++.h>
+#include "kdtree.hpp"
 using namespace std;
 using namespace Kdtree;
 
-KdTree *tree;
-
-int main()
+void print_nodes(const Kdtree::KdNodeVector &nodes)
 {
-    return 0;
+    size_t i, j;
+    for (i = 0; i < nodes.size(); ++i)
+    {
+        if (i > 0)
+            cout << " ";
+        cout << "(";
+        for (j = 0; j < nodes[i].point.size(); j++)
+        {
+            if (j > 0)
+                cout << ",";
+            cout << nodes[i].point[j];
+        }
+        cout << ")";
+    }
+    cout << endl;
 }
 
 extern "C"
 {
     EMSCRIPTEN_KEEPALIVE
-    void createTree(float *array, int length)
+    void run(float *points, float *queries, int *res, int numPoints, int numQueries, int k, int dimensions)
     {
-        delete tree;
+        clock_t start = clock();
         KdNodeVector nodes;
-        for (int i = 0; i < length; i += 3)
+        for (int i = 0; i < numPoints; i++)
         {
-            vector<double> point(3);
-            point[0] = array[i];
-            point[1] = array[i + 1];
-            point[2] = array[i + 2];
-            nodes.push_back(KdNode(point));
+            vector<double> p;
+            for (int j = 0; j < dimensions; j++)
+                p.push_back(points[i * dimensions + j]);
+            nodes.push_back(KdNode(p, NULL, i));
         }
-        tree = new KdTree(&nodes);
-    }
+        cout << "C++: Time to make nodes: " << (clock() - start) / (double)CLOCKS_PER_SEC * 1000 << endl;
 
-    EMSCRIPTEN_KEEPALIVE
-    void knn(float *array, int length, int k)
-    {
-        for (int i = 0; i < length; i += 3)
+        start = clock();
+        KdTree tree(&nodes);
+        cout << "C++: Time to create tree: " << (clock() - start) / (double)CLOCKS_PER_SEC * 1000 << endl;
+
+        start = clock();
+
+        for (int i = 0; i < numQueries; i++)
         {
+            vector<double> p;
+            for (int j = 0; j < dimensions; j++)
+                p.push_back(queries[i * dimensions + j]);
             KdNodeVector result;
-            tree->k_nearest_neighbors(vector<double>{array[i], array[i + 1], array[i + 2]}, k, &result);
+            tree.k_nearest_neighbors(p, k, &result);
+            for (int j = 0; j < k; j++)
+                res[i * k + j] = result[j].index;
         }
+        cout << "C++: Time to query: " << (clock() - start) / (double)CLOCKS_PER_SEC * 1000 << endl;
+        cout << "C++: Time per query: " << (clock() - start) / (double)CLOCKS_PER_SEC * 1000 / numQueries << endl;
     }
 
     EMSCRIPTEN_KEEPALIVE
-    void *__malloc(size_t size)
+    float *createFloatArray(int length)
     {
-        return malloc(size);
+        return (float *)malloc(length * sizeof(float));
     }
 
     EMSCRIPTEN_KEEPALIVE
-    void __free(void *ptr)
+    int *createIntArray(int length)
     {
-        free(ptr);
+        return (int *)malloc(length * sizeof(int));
+    }
+
+    EMSCRIPTEN_KEEPALIVE
+    void freeFloatArray(float *array)
+    {
+        free(array);
+    }
+
+    EMSCRIPTEN_KEEPALIVE
+    void freeIntArray(int *array)
+    {
+        free(array);
     }
 }

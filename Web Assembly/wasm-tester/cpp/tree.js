@@ -28,7 +28,7 @@ var readyPromise = new Promise((resolve, reject) => {
   readyPromiseResolve = resolve;
   readyPromiseReject = reject;
 });
-["_malloc","_memory","___indirect_function_table","_addPoint","_addPoints","_constructTree","_knn","_printPoints","onRuntimeInitialized"].forEach((prop) => {
+["_constructTree","_malloc","_memory","___indirect_function_table","_addPoint","_addPoints","_knn","_printPoints","onRuntimeInitialized"].forEach((prop) => {
   if (!Object.getOwnPropertyDescriptor(readyPromise, prop)) {
     Object.defineProperty(readyPromise, prop, {
       get: () => abort('You are getting ' + prop + ' on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js'),
