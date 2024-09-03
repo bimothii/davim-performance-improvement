@@ -1,0 +1,36 @@
+# CMake generated Testfile for 
+# Source directory: D:/Coding Stuff/DAVIM/CudaKDTree/testing
+# Build directory: D:/Coding Stuff/DAVIM/CudaKDTree/out/build/x64-Debug/Testing
+# 
+# This file includes the relevant testing commands required for 
+# testing this directory and lists subdirectories to be tested as well.
+add_test(cukdTestBitonicEmptyInput "D:/Coding Stuff/DAVIM/CudaKDTree/out/build/x64-Debug/cukdTestBitonicEmptyInput.exe")
+set_tests_properties(cukdTestBitonicEmptyInput PROPERTIES  _BACKTRACE_TRIPLES "D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;25;add_test;D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;0;")
+add_test(cukdTestThrustEmptyInput "D:/Coding Stuff/DAVIM/CudaKDTree/out/build/x64-Debug/cukdTestThrustEmptyInput.exe")
+set_tests_properties(cukdTestThrustEmptyInput PROPERTIES  _BACKTRACE_TRIPLES "D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;30;add_test;D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;0;")
+add_test(cukdTestInPlaceEmptyInput "D:/Coding Stuff/DAVIM/CudaKDTree/out/build/x64-Debug/cukdTestInPlaceEmptyInput.exe")
+set_tests_properties(cukdTestInPlaceEmptyInput PROPERTIES  _BACKTRACE_TRIPLES "D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;35;add_test;D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;0;")
+add_test(cukdTestBitonicSimpleInput "D:/Coding Stuff/DAVIM/CudaKDTree/out/build/x64-Debug/cukdTestBitonicSimpleInput.exe")
+set_tests_properties(cukdTestBitonicSimpleInput PROPERTIES  _BACKTRACE_TRIPLES "D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;41;add_test;D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;0;")
+add_test(cukdTestThrustSimpleInput "D:/Coding Stuff/DAVIM/CudaKDTree/out/build/x64-Debug/cukdTestThrustSimpleInput.exe")
+set_tests_properties(cukdTestThrustSimpleInput PROPERTIES  _BACKTRACE_TRIPLES "D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;46;add_test;D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;0;")
+add_test(cukdTestInPlaceSimpleInput "D:/Coding Stuff/DAVIM/CudaKDTree/out/build/x64-Debug/cukdTestInPlaceSimpleInput.exe")
+set_tests_properties(cukdTestInPlaceSimpleInput PROPERTIES  _BACKTRACE_TRIPLES "D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;51;add_test;D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;0;")
+add_test(cukdTestPayloadSampleFromReadme "D:/Coding Stuff/DAVIM/CudaKDTree/out/build/x64-Debug/cukdTestPayloadSampleFromReadme.exe")
+set_tests_properties(cukdTestPayloadSampleFromReadme PROPERTIES  _BACKTRACE_TRIPLES "D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;57;add_test;D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;0;")
+add_test(cukdTestHostBuilderEmptyInput "D:/Coding Stuff/DAVIM/CudaKDTree/out/build/x64-Debug/cukdTestHostBuilderEmptyInput.exe")
+set_tests_properties(cukdTestHostBuilderEmptyInput PROPERTIES  _BACKTRACE_TRIPLES "D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;63;add_test;D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;0;")
+add_test(cukdTestHostBuilderSimpleInput "D:/Coding Stuff/DAVIM/CudaKDTree/out/build/x64-Debug/cukdTestHostBuilderSimpleInput.exe")
+set_tests_properties(cukdTestHostBuilderSimpleInput PROPERTIES  _BACKTRACE_TRIPLES "D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;67;add_test;D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;0;")
+add_test(cukdTestBuildersSameResult "D:/Coding Stuff/DAVIM/CudaKDTree/out/build/x64-Debug/cukdTestBuildersSameResult.exe")
+set_tests_properties(cukdTestBuildersSameResult PROPERTIES  _BACKTRACE_TRIPLES "D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;74;add_test;D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;0;")
+add_test(cukdTestCompileSpatialKNN "D:/Coding Stuff/DAVIM/CudaKDTree/out/build/x64-Debug/cukdTestCompileSpatialKNN.exe")
+set_tests_properties(cukdTestCompileSpatialKNN PROPERTIES  _BACKTRACE_TRIPLES "D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;81;add_test;D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;0;")
+add_test(cukdTestCompileKNN "D:/Coding Stuff/DAVIM/CudaKDTree/out/build/x64-Debug/cukdTestCompileKNN.exe")
+set_tests_properties(cukdTestCompileKNN PROPERTIES  _BACKTRACE_TRIPLES "D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;85;add_test;D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;0;")
+add_test(cukdTestIssue5_thrust "D:/Coding Stuff/DAVIM/CudaKDTree/out/build/x64-Debug/cukdTestIssue5_thrust.exe")
+set_tests_properties(cukdTestIssue5_thrust PROPERTIES  _BACKTRACE_TRIPLES "D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;105;add_test;D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;0;")
+add_test(cukdTestIssue5_bitonic "D:/Coding Stuff/DAVIM/CudaKDTree/out/build/x64-Debug/cukdTestIssue5_bitonic.exe")
+set_tests_properties(cukdTestIssue5_bitonic PROPERTIES  _BACKTRACE_TRIPLES "D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;110;add_test;D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;0;")
+add_test(cukdTestIssue5_inPlace "D:/Coding Stuff/DAVIM/CudaKDTree/out/build/x64-Debug/cukdTestIssue5_inPlace.exe")
+set_tests_properties(cukdTestIssue5_inPlace PROPERTIES  _BACKTRACE_TRIPLES "D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;115;add_test;D:/Coding Stuff/DAVIM/CudaKDTree/testing/CMakeLists.txt;0;")
